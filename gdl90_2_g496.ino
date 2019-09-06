@@ -11,7 +11,7 @@ float mLat = 0;  // My position variables
 float mLon = 0;
 int mAltitude = 0;
 
-int tStatus = 0;	// Traffic variables //test
+int tStatus = 0;	// Traffic variables 
 float tLat = 0;
 float tLon = 0;
 int tAltitude = 0;
