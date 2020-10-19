@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name gdl90_2_g496-rescue)(type Legacy)(uri ${KIPRJMOD}/gdl90_2_g496-rescue.lib)(options "")(descr ""))
+)
