@@ -16,14 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="gdl90_2_g496.ino" />
-    <None Include="kicad\_autosave-gdl90_2_g496.sch" />
-    <None Include="kicad\gdl90_2_g496.kicad_pcb" />
-    <None Include="kicad\gdl90_2_g496.kicad_pro" />
-    <None Include="kicad\gdl90_2_g496.pro" />
-    <None Include="kicad\gdl90_2_g496.sch" />
-    <None Include="kicad\gdl90_2_g496.sch-bak" />
-    <None Include="kicad\gdl90_2_g496-rescue.dcm" />
-    <None Include="kicad\sym-lib-table" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.gdl90_2_g496.vsarduino.h">
@@ -32,9 +24,5 @@
     <ClInclude Include="__vm\.gdl90.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="kicad\gdl90_2_g496-cache.lib" />
-    <Library Include="kicad\gdl90_2_g496-rescue.lib" />
   </ItemGroup>
 </Project>

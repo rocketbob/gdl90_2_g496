@@ -1,10 +1,11 @@
-#include <ESP8266WiFi.h>
+#include <WiFi.h>
 #include <WiFiUDP.h>
 
 unsigned int UDPPort = 4000;	// local port to listen on
 const int bufferSize = 450;
 byte packetBuffer[bufferSize];	//buffer to hold incoming packet
 byte messageBuffer[bufferSize];
+
 const int maxTargets = 8;
 
 float mLat = 0;  // My position variables
@@ -34,7 +35,7 @@ WiFiUDP Udp;
 
 void setup() {
 	timer = millis();
-	Serial1.begin(9600);	// Serial port to Garmin 396/496 (pin D4 on NodeMCU)
+	Serial2.begin(9600);	// Serial port to Garmin 396/496 (pin D4 on NodeMCU)
 	Serial.begin(115200);	// Debug serial port (usb on NodeMCU)
 	WiFi.begin("stratux");	// ADS-B SSID
 	//WiFi.begin("Ping-4D6F");
@@ -99,10 +100,10 @@ float findTrafficDirection(float latD, float lonD) {	// convert pythag angle to 
 }
 
 void writeByte(byte byteInput) {
-	Serial1.write(byteInput);
+	Serial2.write(byteInput);
 	checksum = checksum + byteInput;
 	if (byteInput == 0x10) {
-		Serial1.write(0x10);        //Duplicate the byte if same as DLE - not in checksum
+		Serial2.write(0x10);        //Duplicate the byte if same as DLE - not in checksum
 	}
 }
 
@@ -115,7 +116,7 @@ void writeInt(int intInput) {   //Split int into two bytes
 
 void sendNOTIS() {
 	checksum = 0;                 //Reset checksum
-	Serial1.write(0x10);          //DLE - not in checksum
+	Serial2.write(0x10);          //DLE - not in checksum
 	writeByte(0x8C);              //Message ID
 	writeByte(0x08);              //Data length
 	writeByte(0x04);              //?
@@ -125,9 +126,9 @@ void sendNOTIS() {
 	writeInt(0);                  //Compass heading (degrees)
 	writeByte(0x00);              //?3f
 	writeByte(0x00);              //?
-	Serial1.write(-checksum);     //Checksum
-	Serial1.write(0x10);          //DLE - not in checksum
-	Serial1.write(0x03);          //ETX - not in checksum
+	Serial2.write(-checksum);     //Checksum
+	Serial2.write(0x10);          //DLE - not in checksum
+	Serial2.write(0x03);          //ETX - not in checksum
 	//Serial.println("NOTIS");
 }
 
@@ -141,7 +142,7 @@ void sendTIS() {
 		sendNOTIS();
 	}
 	else {
-		Serial1.write(0x10);			//DLE - not in checksum
+		Serial2.write(0x10);			//DLE - not in checksum
 		writeByte(0x8C);				//Message ID
 		writeByte(8 + (8 * tNumberOf));	//Data length
 		writeByte(0x04);				//?
@@ -170,9 +171,9 @@ void sendTIS() {
 		writeInt(25);		//Traffic altitude (feet/100)
 		*/
 
-		Serial1.write(-checksum);	//Checksum
-		Serial1.write(0x10);		//DLE - not in checksum
-		Serial1.write(0x03);		//ETX - not in checksum
+		Serial2.write(-checksum);	//Checksum
+		Serial2.write(0x10);		//DLE - not in checksum
+		Serial2.write(0x03);		//ETX - not in checksum
 	}
 }
 

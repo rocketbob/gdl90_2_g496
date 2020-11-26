@@ -38,6 +38,7 @@ WiFiUDP Udp;
 void setup() {
 	timer = millis();
 	Serial1.begin(9600);	// Serial port to Garmin 396/496 (pin D4 on NodeMCU)
+	Serial.
 	Serial.begin(115200);	// Debug serial port (usb on NodeMCU)
 	pinMode(wifiSelectPin, INPUT);
 	if (digitalRead(wifiSelectPin) == HIGH) {

@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name gdl90_2_g496-rescue)(type Legacy)(uri ${KIPRJMOD}/gdl90_2_g496-rescue.lib)(options "")(descr ""))
+  (lib (name 2020-10-19_23-45-47)(type Legacy)(uri /Users/bobj/Documents/PersonalProjects/gdl90_2_g496/ul_MAX233CPP/KiCAD/2020-10-19_23-45-47/2020-10-19_23-45-47.lib)(options "")(descr ""))
 )
