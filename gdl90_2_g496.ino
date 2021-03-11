@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <WiFiUDP.h>
+#include <HardwareSerial.h>
 
 unsigned int UDPPort = 4000;	// local port to listen on
 const int bufferSize = 450;
@@ -33,12 +34,17 @@ byte checksum = 0;
 
 WiFiUDP Udp;
 
+HardwareSerial HwSerial1(1);
+
 void setup() {
 	timer = millis();
-	Serial2.begin(9600);	// Serial port to Garmin 396/496 (pin D4 on NodeMCU)
+	//Serial2.begin(9600);	// Serial port to KLN94; will pass thru serial output of KLN94
+	HwSerial1.begin(9600, SERIAL_8N1, 4, 2); // Serial port to Garmin 396/496 (pin D4 on NodeMCU)
 	Serial.begin(115200);	// Debug serial port (usb on NodeMCU)
-	WiFi.begin("stratux");	// ADS-B SSID
+	//WiFi.begin("stratux");	// ADS-B SSID
 	//WiFi.begin("Ping-4D6F");
+	WiFi.begin("rocketbobhome", "bobby123");
+
 	Serial.println();
 	Serial.print("Wait for WiFi");
 	while (WiFi.status() != WL_CONNECTED) {
@@ -100,10 +106,10 @@ float findTrafficDirection(float latD, float lonD) {	// convert pythag angle to 
 }
 
 void writeByte(byte byteInput) {
-	Serial2.write(byteInput);
+	HwSerial1.write(byteInput);
 	checksum = checksum + byteInput;
 	if (byteInput == 0x10) {
-		Serial2.write(0x10);        //Duplicate the byte if same as DLE - not in checksum
+		HwSerial1.write(0x10);        //Duplicate the byte if same as DLE - not in checksum
 	}
 }
 
@@ -116,7 +122,7 @@ void writeInt(int intInput) {   //Split int into two bytes
 
 void sendNOTIS() {
 	checksum = 0;                 //Reset checksum
-	Serial2.write(0x10);          //DLE - not in checksum
+	HwSerial1.write(0x10);          //DLE - not in checksum
 	writeByte(0x8C);              //Message ID
 	writeByte(0x08);              //Data length
 	writeByte(0x04);              //?
@@ -126,9 +132,9 @@ void sendNOTIS() {
 	writeInt(0);                  //Compass heading (degrees)
 	writeByte(0x00);              //?3f
 	writeByte(0x00);              //?
-	Serial2.write(-checksum);     //Checksum
-	Serial2.write(0x10);          //DLE - not in checksum
-	Serial2.write(0x03);          //ETX - not in checksum
+	HwSerial1.write(-checksum);     //Checksum
+	HwSerial1.write(0x10);          //DLE - not in checksum
+	HwSerial1.write(0x03);          //ETX - not in checksum
 	//Serial.println("NOTIS");
 }
 
@@ -142,7 +148,7 @@ void sendTIS() {
 		sendNOTIS();
 	}
 	else {
-		Serial2.write(0x10);			//DLE - not in checksum
+		HwSerial1.write(0x10);			//DLE - not in checksum
 		writeByte(0x8C);				//Message ID
 		writeByte(8 + (8 * tNumberOf));	//Data length
 		writeByte(0x04);				//?
@@ -171,9 +177,9 @@ void sendTIS() {
 		writeInt(25);		//Traffic altitude (feet/100)
 		*/
 
-		Serial2.write(-checksum);	//Checksum
-		Serial2.write(0x10);		//DLE - not in checksum
-		Serial2.write(0x03);		//ETX - not in checksum
+		HwSerial1.write(-checksum);	//Checksum
+		HwSerial1.write(0x10);		//DLE - not in checksum
+		HwSerial1.write(0x03);		//ETX - not in checksum
 	}
 }
 
@@ -188,20 +194,27 @@ void loop() {
 		if (len > 0) {
 			packetBuffer[len] = 0;
 		}
+
 		int m = 0;
-		for (int i = 0; i < len; i++) {	// Unpack buffer.  Remove extra bytes.
-			if (packetBuffer[i] == 0x7D) {
-				i++;
-				if (packetBuffer[i] == 0x5E) {
+		for (int i = 0; i < len; i++) { // Unpack buffer. Remove extra bytes.
+			if (packetBuffer[i] == 0x7D) { // escape control character
+				i++; // look at next character
+				if (packetBuffer[i] == 0x5E) { // this is 0x7E ^ 0x20, which is an escaped 0x7E
 					messageBuffer[m] = 0x7E;
+					//Serial.print("Replaced "); Serial.print(packetBuffer[i], HEX); Serial.print(" with "); Serial.println(messageBuffer[m], HEX);
 				}
-				if (packetBuffer[i] == 0x5D) {
-					messageBuffer[m] == 0x7D;
+				else if (packetBuffer[i] == 0x5D) { // this is 0x7D ^ 0x20, which is an escaped 0x7D
+					messageBuffer[m] = 0x7D;
+					//Serial.print("Replaced "); Serial.print(packetBuffer[i], HEX); Serial.print(" with "); Serial.println(messageBuffer[m], HEX);
 				}
 			}
-			messageBuffer[m] = packetBuffer[i];
+			else { // all OTHER characters
+				messageBuffer[m] = packetBuffer[i]; // copy unescaped characters
+			}
 			m++;
 		}
+		len = m; // this is the new length of the message with escape symbols (0x7D) removed
+
 		/*// Print hex values--------------------------------------------
 		for (int j = 0; j < len; j++) {
 
