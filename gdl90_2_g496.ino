@@ -53,6 +53,7 @@ int myICAO = 0xA8E6E0;  // drew address
 
 
 WiFiUDP Udp;
+HardwareSerial HwSerial1(1);
 
 void setup() {
 	pinMode(trafficAudioPin, OUTPUT);
@@ -62,7 +63,7 @@ void setup() {
 
 
 	timer = millis();
-	Serial1.begin(9600);	// Serial port to Garmin 396/496 (pin D4 on NodeMCU)
+	HwSerial1.begin(9600);	// Serial port to Garmin 396/496 (pin D4 on NodeMCU)
 	Serial.begin(115200);	// Debug serial port (usb on NodeMCU)
 	pinMode(wifiSelectPin, INPUT);
 
@@ -176,10 +177,10 @@ float findTrafficDirection(float latD, float lonD) {	// convert pythag angle to 
 }
 
 void writeByte(byte byteInput) {
-	Serial1.write(byteInput);
+	HwSerial1.write(byteInput);
 	checksum = checksum + byteInput;
 	if (byteInput == 0x10) {
-		Serial1.write(0x10);        //Duplicate the byte if same as DLE - not in checksum
+		HwSerial1.write(0x10);        //Duplicate the byte if same as DLE - not in checksum
 	}
 }
 
@@ -192,7 +193,7 @@ void writeInt(int intInput) {   //Split int into two bytes
 
 void sendNOTIS() {
 	checksum = 0;                 //Reset checksum
-	Serial1.write(0x10);          //DLE - not in checksum
+	HwSerial1.write(0x10);          //DLE - not in checksum
 	writeByte(0x8C);              //Message ID
 	writeByte(0x08);              //Data length
 	writeByte(0x04);              //?
@@ -202,9 +203,9 @@ void sendNOTIS() {
 	writeInt(0);                  //Compass heading (degrees)
 	writeByte(0x00);              //?3f
 	writeByte(0x00);              //?
-	Serial1.write(-checksum);     //Checksum
-	Serial1.write(0x10);          //DLE - not in checksum
-	Serial1.write(0x03);          //ETX - not in checksum
+	HwSerial1.write(-checksum);     //Checksum
+	HwSerial1.write(0x10);          //DLE - not in checksum
+	HwSerial1.write(0x03);          //ETX - not in checksum
 	//Serial.println("NOTIS");
 }
 
@@ -218,7 +219,7 @@ void sendTIS() {
 		sendNOTIS();
 	}
 	else {
-		Serial1.write(0x10);			//DLE - not in checksum
+		HwSerial1.write(0x10);			//DLE - not in checksum
 		writeByte(0x8C);				//Message ID
 		writeByte(8 + (8 * tNumberOf));	//Data length
 		writeByte(0x04);				//?
@@ -260,9 +261,9 @@ void sendTIS() {
 		writeInt(25);		//Traffic altitude (feet/100)
 		*/
 
-		Serial1.write(-checksum);	//Checksum
-		Serial1.write(0x10);		//DLE - not in checksum
-		Serial1.write(0x03);		//ETX - not in checksum
+		HwSerial1.write(-checksum);	//Checksum
+		HwSerial1.write(0x10);		//DLE - not in checksum
+		HwSerial1.write(0x03);		//ETX - not in checksum
 	}
 }
 
